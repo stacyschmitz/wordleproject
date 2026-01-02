@@ -2,12 +2,29 @@ import { createClient } from "@liveblocks/client";
 import { createRoomContext } from "@liveblocks/react";
 
 const client = createClient({
-  publicApiKey: import.meta.env.VITE_LIVEBLOCKS_PUBLIC_KEY || "",
-  authEndpoint: async () => {
+  authEndpoint: async (room) => {
     const userId = localStorage.getItem('wordleUser') || 'Anonymous';
-    return {
-      token: userId,
-    };
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/liveblocks-auth`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          userId,
+          roomId: room || 'wordle-tracker-main',
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to authenticate with Liveblocks');
+    }
+
+    const data = await response.json();
+    return data;
   },
   resolveUsers: async ({ userIds }) => {
     return userIds.map((userId) => ({

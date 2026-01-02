@@ -58,6 +58,7 @@ type RoomEvent = {};
 
 export type ThreadMetadata = {
   resultDate: string;
+  player: string;
   resolved: boolean;
 };
 
@@ -71,5 +72,8 @@ export const {
     useRemoveReaction,
     useRoom,
     useSelf,
+    useEditThreadMetadata,
   },
+  ThreadComposer,
+  Thread,
 } = createRoomContext<Presence, Storage, UserMeta, RoomEvent, ThreadMetadata>(client);

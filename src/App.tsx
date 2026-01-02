@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { supabase } from './lib/supabase';
 import { ScoreSubmitForm } from './components/ScoreSubmitForm';
 import { DailyResults } from './components/DailyResults';
 import { Leaderboard } from './components/Leaderboard';
 import { PlayerSetup } from './components/PlayerSetup';
 import { FAQ } from './components/FAQ';
+import { LiveblocksProvider } from './components/LiveblocksProvider';
+import { Notifications } from './components/Notifications';
 import { DailyResult, PlayerStats, WordleGame } from './types';
 
 function App() {
@@ -113,22 +115,27 @@ function App() {
   const [showFAQ, setShowFAQ] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-        <header className="text-center mb-6 sm:mb-8">
-          <div className="flex items-center justify-center mb-4 sm:mb-6">
-            <div className="grid grid-cols-3 gap-[2px] w-12 h-12 sm:w-16 sm:h-16">
-              <div className="bg-[#6aaa64] rounded-sm"></div>
-              <div className="bg-[#c9b458] rounded-sm"></div>
-              <div className="bg-[#787c7e] rounded-sm"></div>
-              <div className="bg-[#787c7e] rounded-sm"></div>
-              <div className="bg-[#6aaa64] rounded-sm"></div>
-              <div className="bg-[#c9b458] rounded-sm"></div>
-              <div className="bg-[#c9b458] rounded-sm"></div>
-              <div className="bg-[#787c7e] rounded-sm"></div>
-              <div className="bg-[#6aaa64] rounded-sm"></div>
+    <LiveblocksProvider>
+      <div className="min-h-screen bg-white">
+        <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+          <header className="text-center mb-6 sm:mb-8">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div className="w-8"></div>
+              <div className="grid grid-cols-3 gap-[2px] w-12 h-12 sm:w-16 sm:h-16">
+                <div className="bg-[#6aaa64] rounded-sm"></div>
+                <div className="bg-[#c9b458] rounded-sm"></div>
+                <div className="bg-[#787c7e] rounded-sm"></div>
+                <div className="bg-[#787c7e] rounded-sm"></div>
+                <div className="bg-[#6aaa64] rounded-sm"></div>
+                <div className="bg-[#c9b458] rounded-sm"></div>
+                <div className="bg-[#c9b458] rounded-sm"></div>
+                <div className="bg-[#787c7e] rounded-sm"></div>
+                <div className="bg-[#6aaa64] rounded-sm"></div>
+              </div>
+              <Suspense fallback={<div className="w-8"></div>}>
+                <Notifications />
+              </Suspense>
             </div>
-          </div>
 
             <h1 className="text-xl sm:text-3xl font-bold text-[#1a1a1b] mb-4 sm:mb-6 tracking-tight px-2">
               Schmitz Sister Wordle Leaderboard
@@ -214,8 +221,9 @@ function App() {
             </div>
           )}
         </footer>
+        </div>
       </div>
-    </div>
+    </LiveblocksProvider>
   );
 }
 

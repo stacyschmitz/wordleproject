@@ -6,6 +6,8 @@ import { Leaderboard } from './components/Leaderboard';
 import { PlayerSetup } from './components/PlayerSetup';
 import { FAQ } from './components/FAQ';
 import { DailyResult, PlayerStats, WordleGame } from './types';
+import { RoomProvider } from './lib/liveblocks.config';
+import '@liveblocks/react-ui/styles.css';
 
 function App() {
   const [dailyResults, setDailyResults] = useState<DailyResult[]>([]);
@@ -111,10 +113,53 @@ function App() {
 
   const [showSetup, setShowSetup] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string>(() => {
+    return localStorage.getItem('wordleUser') || '';
+  });
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('wordleUser', currentUser);
+    }
+  }, [currentUser]);
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white border-2 border-[#d3d6da] rounded-lg p-6">
+          <h2 className="text-xl font-bold text-[#1a1a1b] mb-4 text-center">
+            Who are you?
+          </h2>
+          <p className="text-sm text-[#878a8c] mb-6 text-center">
+            Select your name to start commenting on results
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => setCurrentUser('Katie')}
+              className="w-full bg-[#6aaa64] text-white py-3 rounded font-bold hover:bg-[#5a9a54] transition-colors"
+            >
+              Katie
+            </button>
+            <button
+              onClick={() => setCurrentUser('Stacy')}
+              className="w-full bg-[#6aaa64] text-white py-3 rounded font-bold hover:bg-[#5a9a54] transition-colors"
+            >
+              Stacy
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+    <RoomProvider
+      id="wordle-tracker-main"
+      initialPresence={{ cursor: null }}
+      initialStorage={{}}
+    >
+      <div className="min-h-screen bg-white">
+        <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <header className="text-center mb-6 sm:mb-8">
           <div className="flex items-center justify-center mb-4 sm:mb-6">
             <div className="grid grid-cols-3 gap-[2px] w-12 h-12 sm:w-16 sm:h-16">
@@ -214,8 +259,21 @@ function App() {
             </div>
           )}
         </footer>
+
+        <div className="fixed bottom-4 right-4">
+          <button
+            onClick={() => {
+              localStorage.removeItem('wordleUser');
+              setCurrentUser('');
+            }}
+            className="bg-[#787c7e] text-white px-3 py-2 rounded text-xs hover:bg-[#6a6d70] transition-colors"
+          >
+            Switch User ({currentUser})
+          </button>
+        </div>
       </div>
     </div>
+    </RoomProvider>
   );
 }
 

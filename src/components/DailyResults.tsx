@@ -1,5 +1,7 @@
 import { Calendar } from 'lucide-react';
 import { DailyResult } from '../types';
+import { CommentThread } from './CommentThread';
+import { Suspense } from 'react';
 
 interface DailyResultsProps {
   results: DailyResult[];
@@ -32,6 +34,7 @@ export function DailyResults({ results }: DailyResultsProps) {
                   <th className="text-left py-2 sm:py-3 px-2 sm:px-3 text-[#1a1a1b] font-bold text-xs sm:text-sm">Date</th>
                   <th className="text-center py-2 sm:py-3 px-2 sm:px-3 text-[#1a1a1b] font-bold text-xs sm:text-sm">Katie</th>
                   <th className="text-center py-2 sm:py-3 px-2 sm:px-3 text-[#1a1a1b] font-bold text-xs sm:text-sm">Stacy</th>
+                  <th className="text-center py-2 sm:py-3 px-2 sm:px-3 text-[#1a1a1b] font-bold text-xs sm:text-sm w-12"></th>
                 </tr>
               </thead>
               <tbody>
@@ -53,6 +56,11 @@ export function DailyResults({ results }: DailyResultsProps) {
                       result.winner !== null && result.winner === 'Stacy' ? 'text-[#6aaa64]' : 'text-[#787c7e]'
                     }`}>
                       {formatScore(result.stacyScore)}
+                    </td>
+                    <td className="py-2 sm:py-3 px-2 sm:px-3 text-center relative">
+                      <Suspense fallback={<div className="w-4 h-4 mx-auto bg-gray-200 rounded animate-pulse" />}>
+                        <CommentThread resultDate={result.date} />
+                      </Suspense>
                     </td>
                   </tr>
                 ))}

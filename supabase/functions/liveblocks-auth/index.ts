@@ -1,15 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { Liveblocks } from "npm:@liveblocks/node@2.16.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
-
-interface AuthRequest {
-  userId: string;
-  roomId: string;
-}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -20,21 +16,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { userId, roomId }: AuthRequest = await req.json();
-
-    if (!userId || !roomId) {
-      return new Response(
-        JSON.stringify({ error: "userId and roomId are required" }),
-        {
-          status: 400,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
-
     const LIVEBLOCKS_SECRET = Deno.env.get("LIVEBLOCKS_SECRET_KEY");
 
     if (!LIVEBLOCKS_SECRET) {
@@ -50,45 +31,29 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const response = await fetch("https://api.liveblocks.io/v2/rooms/" + roomId + "/users/" + userId + "/authorize", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LIVEBLOCKS_SECRET}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        userId,
-        groupIds: [],
-      }),
+    const liveblocks = new Liveblocks({
+      secret: LIVEBLOCKS_SECRET,
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("Liveblocks API error:", error);
-      return new Response(
-        JSON.stringify({ error: "Failed to authorize with Liveblocks" }),
-        {
-          status: response.status,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+    const { room } = await req.json();
+    const session = liveblocks.prepareSession(
+      `user-${Math.random().toString(36).substring(7)}`,
+      { userInfo: {} }
+    );
+
+    if (room) {
+      session.allow(room, session.FULL_ACCESS);
     }
 
-    const data = await response.json();
+    const { status, body } = await session.authorize();
 
-    return new Response(
-      JSON.stringify(data),
-      {
-        status: 200,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    return new Response(body, {
+      status,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json",
+      },
+    });
   } catch (error) {
     console.error("Error in liveblocks-auth:", error);
     return new Response(

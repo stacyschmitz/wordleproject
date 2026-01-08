@@ -1,6 +1,6 @@
+import { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
-import { useThreads } from '../lib/liveblocks.config';
-import { ThreadMetadata } from '../lib/liveblocks.config';
+import { supabase } from '../lib/supabase';
 
 interface CommentThreadProps {
   resultDate: string;
@@ -9,16 +9,43 @@ interface CommentThreadProps {
 }
 
 export function CommentThread({ resultDate, player, onClick }: CommentThreadProps) {
-  const { threads } = useThreads({ query: { metadata: { resultDate, player } } });
+  const [commentCount, setCommentCount] = useState(0);
 
-  const resultThreads = threads?.filter(thread => {
-    const metadata = thread.metadata as ThreadMetadata;
-    return metadata?.resultDate === resultDate && metadata?.player === player;
-  }) || [];
+  useEffect(() => {
+    const fetchCommentCount = async () => {
+      const { count } = await supabase
+        .from('comments')
+        .select('*', { count: 'exact', head: true })
+        .eq('result_date', resultDate)
+        .eq('player_name', player);
 
-  const hasComments = resultThreads.length > 0;
+      setCommentCount(count || 0);
+    };
 
-  if (!hasComments) return null;
+    fetchCommentCount();
+
+    const channel = supabase
+      .channel(`comments-${resultDate}-${player}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comments',
+          filter: `result_date=eq.${resultDate}`,
+        },
+        () => {
+          fetchCommentCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [resultDate, player]);
+
+  if (commentCount === 0) return null;
 
   return (
     <button
@@ -30,7 +57,7 @@ export function CommentThread({ resultDate, player, onClick }: CommentThreadProp
     >
       <MessageCircle className="w-4 h-4 text-[#6aaa64]" />
       <div className="absolute -top-1 -right-1 bg-[#6aaa64] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-        {resultThreads.length}
+        {commentCount}
       </div>
     </button>
   );

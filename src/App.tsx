@@ -6,8 +6,6 @@ import { Leaderboard } from './components/Leaderboard';
 import { PlayerSetup } from './components/PlayerSetup';
 import { FAQ } from './components/FAQ';
 import { DailyResult, PlayerStats, WordleGame } from './types';
-import { RoomProvider } from './lib/liveblocks.config';
-import '@liveblocks/react-ui/styles.css';
 
 function App() {
   const [dailyResults, setDailyResults] = useState<DailyResult[]>([]);
@@ -153,13 +151,8 @@ function App() {
   }
 
   return (
-    <RoomProvider
-      id="wordle-tracker-main"
-      initialPresence={{ cursor: null }}
-      initialStorage={{}}
-    >
-      <div className="min-h-screen bg-white">
-        <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-2xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <header className="text-center mb-6 sm:mb-8">
           <div className="flex items-center justify-center mb-4 sm:mb-6">
             <div className="grid grid-cols-3 gap-[2px] w-12 h-12 sm:w-16 sm:h-16">
@@ -208,7 +201,7 @@ function App() {
         ) : (
           <div className="space-y-6">
             <Leaderboard results={dailyResults} />
-            <DailyResults results={dailyResults} />
+            <DailyResults results={dailyResults} currentUser={currentUser} />
           </div>
         )}
 
@@ -273,7 +266,6 @@ function App() {
         </div>
       </div>
     </div>
-    </RoomProvider>
   );
 }
 
